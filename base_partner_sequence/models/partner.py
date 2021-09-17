@@ -12,13 +12,18 @@ class ResPartner(models.Model):
 
     _inherit = "res.partner"
 
-    def _get_next_ref(self, vals=None):
-        return self.env["ir.sequence"].next_by_code("res.partner")
+    def _get_next_ref(self, vals=None, customer=True):
+        if customer:
+            return self.env["ir.sequence"].next_by_code("res.partner.customer")
+        return self.env["ir.sequence"].next_by_code("res.partner.supplier")
 
     @api.model
     def create(self, vals):
+        customer = False
+        if vals.get('customer_rank', False) and vals.get('customer_rank') > 0:
+            customer = True
         if not vals.get("ref") and self._needs_ref(vals=vals):
-            vals["ref"] = self._get_next_ref(vals=vals)
+            vals["ref"] = self._get_next_ref(vals=vals, customer=customer)
         return super(ResPartner, self).create(vals)
 
     def copy(self, default=None):
